@@ -9,6 +9,9 @@ const tau = 2 * Math.PI;
 const deathSound = new Audio("resources/explode_11.mp3");
 deathSound.volume = 0.1;
 
+const menuLoop = new Audio("resources/menuLoop.mp3");
+menuLoop.volume = 0.3;
+
 let tps = 300;
 
 let gridLength = 73;
@@ -276,8 +279,25 @@ const levelSelectorDiv = document.getElementById("levelSelectorDiv");
 
 const shodBox = document.getElementById("shod");
 const noclipBox = document.getElementById("noclip");
+const menuLoopBox = document.getElementById("menuLoop");
 
 levelSelectorDiv.remove();
+
+function playMenuLoop() {
+  if (currentScreen != "playing" && menuLoopBox.checked) menuLoop.play();
+  document.removeEventListener("mousedown", playMenuLoop);
+}
+
+document.addEventListener("mousedown", playMenuLoop);
+
+menuLoopBox.addEventListener("change", function () {
+  if (this.checked) {
+    menuLoop.currentTime = 0;
+    menuLoop.play();
+  } else {
+    menuLoop.pause();
+  }
+});
 
 function playButtonClicked() {
   currentScreen = "levelSelect";
@@ -300,6 +320,7 @@ function skepticChamberButtonClicked() {
 }
 
 function startAttempt(levelObjs, levelSong, offset = 0) {
+  menuLoop.pause();
   currentScreen = "playing";
   let shod = shodBox.checked;
   currentAttempt = new Attempt(levelObjs, levelSong, 8.7, "cube", shod);
@@ -320,7 +341,6 @@ function startAttempt(levelObjs, levelSong, offset = 0) {
 }
 
 function newAttempt(currentIntervalID) {
-  currentScreen = "playing";
   if (currentAttempt.intervalID != currentIntervalID) {
     return;
   }
@@ -342,7 +362,12 @@ function escapeTo(screen) {
   switch (screen) {
     case "levelSelect":
       currentAttempt.song.pause();
+      if (menuLoopBox.checked) {
+        menuLoop.currentTime = 0;
+        menuLoop.play();
+      }
       clearInterval(currentAttempt.intervalID);
+      currentAttempt.intervalID = "";
       windowDiv.prepend(levelSelectorDiv);
       currentScreen = "levelSelect";
       break;
